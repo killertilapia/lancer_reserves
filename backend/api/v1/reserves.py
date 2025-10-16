@@ -5,9 +5,9 @@ from sqlalchemy import func
 import json
 import random
 
-from app.database import get_db
-from app.models.reserves import Reserve
-from app.schemas.reserves import ReserveCreate, ReserveUpdate, ReserveResponse, ReserveType
+from backend.database import get_db
+from backend.models.reserves import Reserve
+from backend.schemas.reserves import ReserveCreate, ReserveUpdate, ReserveResponse, ReserveType
 
 router = APIRouter()
 

@@ -7,11 +7,11 @@ from fastapi.middleware.cors import CORSMiddleware
 import strawberry
 from strawberry.fastapi import GraphQLRouter
 
-from app.database import init_db, get_db, SessionLocal
-from app.api.v1 import api_router
-from app.graphql.queries import Query
-from app.graphql.mutations import Mutation
-from app.models.reserves import Reserve
+from backend.database import init_db, get_db, SessionLocal
+from backend.api.v1 import api_router
+from backend.graphql.queries import Query
+from backend.graphql.mutations import Mutation
+from backend.models.reserves import Reserve
 
 
 def seed_database():

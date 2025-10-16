@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import Column, String, Text, DateTime, JSON
-from app.database import Base
+from backend.database import Base
 
 
 class Reserve(Base):

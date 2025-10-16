@@ -1,4 +1,4 @@
-from app.schemas.reserves import (
+from backend.schemas.reserves import (
     ReserveBase,
     ReserveCreate,
     ReserveUpdate,

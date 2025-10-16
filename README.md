@@ -84,7 +84,7 @@ uv sync
 
 4. **Run the application**
 ```bash
-uv run uvicorn app.main:app --reload
+uv run uvicorn backend.main:app --reload
 ```
 
 The API will be available at `http://localhost:8000`
@@ -350,7 +350,7 @@ The database file is created in the project root directory.
 ### Project Structure
 ```
 lancer_reserves/
-├── app/
+├── backend/
 │   ├── __init__.py
 │   ├── main.py              # FastAPI application
 │   ├── database.py          # Database configuration
