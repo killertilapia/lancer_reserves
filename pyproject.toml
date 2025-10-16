@@ -1,0 +1,22 @@
+[project]
+name = "lancer-reserves"
+version = "1.0.0"
+description = "REST and GraphQL API for managing Lancer TTRPG reserves"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Lancer Reserves Team"},
+]
+keywords = ["lancer", "ttrpg", "api", "fastapi", "graphql"]
+
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.20.0",
+    "sqlalchemy>=2.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "strawberry-graphql[fastapi]>=0.200.0",
+    "python-multipart>=0.0.5",
+]
+
