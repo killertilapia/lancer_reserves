@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import reserves
+from backend.api.v1 import reserves
 
 api_router = APIRouter()
 api_router.include_router(reserves.router, prefix="/reserves", tags=["reserves"])

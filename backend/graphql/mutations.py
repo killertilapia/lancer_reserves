@@ -3,9 +3,9 @@ import strawberry
 from strawberry.types import Info
 from sqlalchemy.orm import Session
 
-from app.models.reserves import Reserve
-from app.graphql.schema import ReserveType, ReserveInput, ReserveUpdateInput
-from app.graphql.queries import convert_reserve_to_graphql
+from backend.models.reserves import Reserve
+from backend.graphql.schema import ReserveType, ReserveInput, ReserveUpdateInput
+from backend.graphql.queries import convert_reserve_to_graphql
 
 
 @strawberry.type

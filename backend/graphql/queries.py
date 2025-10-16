@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 import random
 
-from app.models.reserves import Reserve
-from app.graphql.schema import ReserveType, ReserveTypeEnum, BonusType, DeployableType, ActionType, SynergyType, RangeValueType, DamageValueType
+from backend.models.reserves import Reserve
+from backend.graphql.schema import ReserveType, ReserveTypeEnum, BonusType, DeployableType, ActionType, SynergyType, RangeValueType, DamageValueType
 
 
 def convert_reserve_to_graphql(db_reserve: Reserve) -> ReserveType:
