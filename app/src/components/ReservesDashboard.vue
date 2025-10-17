@@ -125,8 +125,8 @@
                   <tr>
                     <th>ID</th>
                     <th>Name</th>
-                    <th>Type</th>
                     <th>Label</th>
+                    <th>Type</th>                    
                     <th>Created</th>
                     <th>Actions</th>
                   </tr>
@@ -140,6 +140,7 @@
                       <strong>{{ reserve.name }}</strong>
                     </td>
                     <td>{{ reserve.label }}</td>
+                    <td>{{  reserve.type }}</td>                    
                     <td>{{ formatDate(reserve.createdAt) }}</td>
                     <td>
                       <button 
