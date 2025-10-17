@@ -8,7 +8,7 @@
             <i class="bi bi-shield-check text-primary me-2"></i>
             Reserves Dashboard
           </h1>
-          <button class="btn btn-primary" @click="showAddReserveModal = true">
+          <button class="btn btn-primary" @click="openAddReserveModal">
             <i class="bi bi-plus-circle me-1"></i>
             Add Reserve
           </button>
@@ -22,7 +22,7 @@
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
           <i class="bi bi-exclamation-triangle me-2"></i>
           {{ error }}
-          <button type="button" class="btn-close" @click="error = null" aria-label="Close"></button>
+          <button type="button" class="btn-close" @click="clearError" aria-label="Close"></button>
         </div>
       </div>
     </div>
@@ -114,12 +114,12 @@
               Reserves
             </h5>
           </div>
-          <div class="card-body">
-            <div v-if="reserves.length === 0" class="text-center py-4">
-              <i class="bi bi-inbox fs-1 text-muted"></i>
-              <p class="text-muted mt-2">No reserves found. Create your first reserve!</p>
-            </div>
-            <div v-else class="table-responsive">
+            <div class="card-body">
+              <div v-if="reserves.length === 0" class="text-center py-4">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <p class="text-muted mt-2">No reserves found. Create your first reserve!</p>
+              </div>
+              <div v-else class="table-responsive">
               <table class="table table-hover">
                 <thead>
                   <tr>
@@ -139,21 +139,8 @@
                     <td>
                       <strong>{{ reserve.name }}</strong>
                     </td>
-                    <td>
-                      <span 
-                        class="badge" 
-                        :class="{
-                          'bg-success': reserve.type === 'BONUS',
-                          'bg-warning': reserve.type === 'RESOURCE',
-                          'bg-info': reserve.type === 'MECH',
-                          'bg-secondary': reserve.type === 'TACTICAL'
-                        }"
-                      >
-                        {{ reserve.type }}
-                      </span>
-                    </td>
                     <td>{{ reserve.label }}</td>
-                    <td>{{ formatDate(reserve.created_at) }}</td>
+                    <td>{{ formatDate(reserve.createdAt) }}</td>
                     <td>
                       <button 
                         class="btn btn-sm btn-outline-primary me-1"
@@ -164,8 +151,7 @@
                       </button>
                       <button 
                         class="btn btn-sm btn-outline-danger"
-                        @click="deleteReserve(reserve.id)"
-                        title="Delete Reserve"
+                        @click="confirmDeleteReserve(reserve)"
                       >
                         <i class="bi bi-trash"></i>
                       </button>
@@ -182,7 +168,7 @@
     <!-- Add Reserve Modal -->
     <AddReserveModal 
       v-if="showAddReserveModal"
-      @close="showAddReserveModal = false"
+      @close="closeAddReserveModal"
       @save="handleAddReserve"
     />
 
@@ -190,103 +176,97 @@
     <EditReserveModal 
       v-if="showEditReserveModal && selectedReserve"
       :reserve="selectedReserve"
-      @close="showEditReserveModal = false; selectedReserve = null"
+      @close="closeEditReserveModal"
       @save="handleEditReserve"
     />
 
-    <!-- Delete Confirmation Modal -->
+    <!-- Delete Confirm Modal -->
     <DeleteConfirmModal 
       v-if="showDeleteConfirmModal && selectedReserve"
       :reserve="selectedReserve"
-      @close="showDeleteConfirmModal = false; selectedReserve = null"
-      @confirm="handleDeleteConfirm"
+      @close="closeDeleteConfirmModal"
+      @confirm="handleDeleteReserve"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useReservesStore } from '../stores/reserves.js'
+import { formatDate } from '../services/graphql.js'
 import AddReserveModal from './AddReserveModal.vue'
 import EditReserveModal from './EditReserveModal.vue'
 import DeleteConfirmModal from './DeleteConfirmModal.vue'
-import { api, RESERVE_TYPES, formatDate } from '../services/graphql.js'
 
-// Reactive data
-const reserves = ref([])
-const showAddReserveModal = ref(false)
-const showEditReserveModal = ref(false)
-const showDeleteConfirmModal = ref(false)
-const selectedReserve = ref(null)
-const isLoading = ref(false)
-const error = ref(null)
+// Use Pinia store
+const reservesStore = useReservesStore()
 
-// Computed properties
-const totalReserves = computed(() => reserves.value.length)
-const bonusReserves = computed(() => reserves.value.filter(r => r.type === RESERVE_TYPES.BONUS).length)
-const resourceReserves = computed(() => reserves.value.filter(r => r.type === RESERVE_TYPES.RESOURCE).length)
-const mechReserves = computed(() => reserves.value.filter(r => r.type === RESERVE_TYPES.MECH).length)
-const tacticalReserves = computed(() => reserves.value.filter(r => r.type === RESERVE_TYPES.TACTICAL).length)
+// Use storeToRefs for reactive state
+const {
+  reserves,
+  isLoading,
+  error,
+  showAddReserveModal,
+  showEditReserveModal,
+  showDeleteConfirmModal,
+  selectedReserve,
+  totalReserves,
+  bonusReserves,
+  resourceReserves,
+  mechReserves,
+  tacticalReserves,
+  monthlyReserves
+} = storeToRefs(reservesStore)
+
+// Access actions directly from store
+const {
+  loadReserves,
+  createReserve,
+  updateReserve,
+  deleteReserve,
+  openAddReserveModal,
+  closeAddReserveModal,
+  openEditReserveModal,
+  closeEditReserveModal,
+  openDeleteConfirmModal,
+  closeDeleteConfirmModal,
+  clearError
+} = reservesStore
 
 // Methods
-const loadReserves = async () => {
-  isLoading.value = true
-  error.value = null
-  
-  try {
-    reserves.value = await api.fetchReserves()
-  } catch (err) {
-    error.value = `Failed to load reserves: ${err.message}`
-    console.error('Error loading reserves:', err)
-  } finally {
-    isLoading.value = false
-  }
-}
-
 const editReserve = (reserve) => {
-  selectedReserve.value = reserve
-  showEditReserveModal.value = true
+  openEditReserveModal(reserve)
 }
 
-const deleteReserve = (id) => {
-  const reserve = reserves.value.find(r => r.id === id)
-  if (reserve) {
-    selectedReserve.value = reserve
-    showDeleteConfirmModal.value = true
-  }
+const confirmDeleteReserve = (reserve) => {
+  openDeleteConfirmModal(reserve)
 }
 
 const handleAddReserve = async (newReserve) => {
   try {
-    await api.createReserve(newReserve)
-    await loadReserves() // Refresh the list
-    showAddReserveModal.value = false
+    await createReserve(newReserve)
   } catch (err) {
-    error.value = `Failed to create reserve: ${err.message}`
-    console.error('Error creating reserve:', err)
+    // Error is handled in the store
+    console.error('Failed to create reserve:', err)
   }
 }
 
-const handleEditReserve = async (id, updatedData) => {
+const handleEditReserve = async (id, updateData) => {
   try {
-    await api.updateReserve(id, updatedData)
-    await loadReserves() // Refresh the list
-    showEditReserveModal.value = false
-    selectedReserve.value = null
+    await updateReserve(id, updateData)
   } catch (err) {
-    error.value = `Failed to update reserve: ${err.message}`
-    console.error('Error updating reserve:', err)
+    // Error is handled in the store
+    console.error('Failed to update reserve:', err)
   }
 }
 
-const handleDeleteConfirm = async (id) => {
+const handleDeleteReserve = async (id) => {
   try {
-    await api.deleteReserve(id)
-    await loadReserves() // Refresh the list
-    showDeleteConfirmModal.value = false
-    selectedReserve.value = null
+    await deleteReserve(id)
   } catch (err) {
-    error.value = `Failed to delete reserve: ${err.message}`
-    console.error('Error deleting reserve:', err)
+    // Error is handled in the store
+    console.error('Failed to delete reserve:', err)
   }
 }
 

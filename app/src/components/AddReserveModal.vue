@@ -1,11 +1,11 @@
 <template>
   <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5)">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">
             <i class="bi bi-plus-circle me-2"></i>
-            Add New Reserve
+            Add New Lancer Reserve
           </h5>
           <button 
             type="button" 
@@ -17,12 +17,16 @@
         
         <form @submit.prevent="handleSubmit">
           <div class="modal-body">
-            <!-- General Error Alert -->
-            <div v-if="errors.general" class="alert alert-danger" role="alert">
-              <i class="bi bi-exclamation-triangle me-2"></i>
-              {{ errors.general }}
+            <!-- Basic Information -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <h6 class="text-primary border-bottom pb-2">
+                  <i class="bi bi-info-circle me-2"></i>
+                  Basic Information
+                </h6>
+              </div>
             </div>
-
+            
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label for="reserveId" class="form-label">Reserve ID *</label>
@@ -31,14 +35,10 @@
                   class="form-control" 
                   id="reserveId"
                   v-model="form.id"
-                  :class="{ 'is-invalid': errors.id }"
-                  placeholder="e.g., reserve_skill"
-                  required
+                  readonly
+                  placeholder="Auto-generated"
                 >
-                <div v-if="errors.id" class="invalid-feedback">
-                  {{ errors.id }}
-                </div>
-                <div class="form-text">Unique identifier (letters, numbers, underscores, hyphens only)</div>
+                <div class="form-text">This ID is automatically generated</div>
               </div>
               
               <div class="col-md-6 mb-3">
@@ -69,9 +69,10 @@
                   required
                 >
                   <option value="">Select type</option>
-                  <option v-for="option in reserveTypeOptions" :key="option.value" :value="option.value">
-                    {{ option.label }}
-                  </option>
+                  <option value="Bonus">Bonus</option>
+                  <option value="Resource">Resource</option>
+                  <option value="Mech">Mech</option>
+                  <option value="Tactical">Tactical</option>
                 </select>
                 <div v-if="errors.type" class="invalid-feedback">
                   {{ errors.type }}
@@ -86,7 +87,7 @@
                   id="reserveLabel"
                   v-model="form.label"
                   :class="{ 'is-invalid': errors.label }"
-                  placeholder="Enter category label"
+                  placeholder="Enter reserve label"
                   required
                 >
                 <div v-if="errors.label" class="invalid-feedback">
@@ -102,14 +103,344 @@
                 id="reserveDescription"
                 v-model="form.description"
                 :class="{ 'is-invalid': errors.description }"
-                rows="4"
-                placeholder="Enter detailed description (HTML supported)"
+                rows="3"
+                placeholder="Enter reserve description"
                 required
               ></textarea>
               <div v-if="errors.description" class="invalid-feedback">
                 {{ errors.description }}
               </div>
+            </div>
+
+            <!-- Bonuses Section -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <h6 class="text-primary border-bottom pb-2">
+                  <i class="bi bi-star me-2"></i>
+                  Bonuses
+                </h6>
+              </div>
+            </div>
+            
+            <div v-for="(bonus, index) in form.bonuses" :key="`bonus-${index}`" class="row mb-3">
+              <div class="col-md-5">
+                <label :for="`bonusId-${index}`" class="form-label">Bonus ID</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  :id="`bonusId-${index}`"
+                  v-model="bonus.id"
+                  placeholder="e.g., accuracy, damage"
+                >
+              </div>
+              <div class="col-md-5">
+                <label :for="`bonusVal-${index}`" class="form-label">Value</label>
+                <input 
+                  type="number" 
+                  class="form-control" 
+                  :id="`bonusVal-${index}`"
+                  v-model.number="bonus.val"
+                  placeholder="e.g., 1, 2, 3"
+                >
+              </div>
+              <div class="col-md-2 d-flex align-items-end">
+                <button 
+                  type="button" 
+                  class="btn btn-outline-danger btn-sm"
+                  @click="removeBonus(index)"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <button 
+                type="button" 
+                class="btn btn-outline-primary btn-sm"
+                @click="addBonus"
+              >
+                <i class="bi bi-plus-circle me-1"></i>
+                Add Bonus
+              </button>
+            </div>
+
+            <!-- Deployables Section -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <h6 class="text-primary border-bottom pb-2">
+                  <i class="bi bi-box me-2"></i>
+                  Deployables
+                </h6>
+              </div>
+            </div>
+            
+            <div v-for="(deployable, index) in form.deployables" :key="`deployable-${index}`" class="row mb-3">
+              <div class="col-md-3">
+                <label :for="`deployableName-${index}`" class="form-label">Name</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  :id="`deployableName-${index}`"
+                  v-model="deployable.name"
+                  placeholder="Deployable name"
+                >
+              </div>
+              <div class="col-md-2">
+                <label :for="`deployableType-${index}`" class="form-label">Type</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  :id="`deployableType-${index}`"
+                  v-model="deployable.type"
+                  placeholder="Type"
+                >
+              </div>
+              <div class="col-md-2">
+                <label :for="`deployableSize-${index}`" class="form-label">Size</label>
+                <input 
+                  type="number" 
+                  class="form-control" 
+                  :id="`deployableSize-${index}`"
+                  v-model.number="deployable.size"
+                  placeholder="Size"
+                >
+              </div>
+              <div class="col-md-4">
+                <label :for="`deployableDetail-${index}`" class="form-label">Detail</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  :id="`deployableDetail-${index}`"
+                  v-model="deployable.detail"
+                  placeholder="Details"
+                >
+              </div>
+              <div class="col-md-1 d-flex align-items-end">
+                <button 
+                  type="button" 
+                  class="btn btn-outline-danger btn-sm"
+                  @click="removeDeployable(index)"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <button 
+                type="button" 
+                class="btn btn-outline-primary btn-sm"
+                @click="addDeployable"
+              >
+                <i class="bi bi-plus-circle me-1"></i>
+                Add Deployable
+              </button>
+            </div>
+
+            <!-- Actions Section -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <h6 class="text-primary border-bottom pb-2">
+                  <i class="bi bi-lightning me-2"></i>
+                  Actions
+                </h6>
+              </div>
+            </div>
+            
+            <div v-for="(action, index) in form.actions" :key="`action-${index}`" class="mb-4">
+              <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Action {{ index + 1 }}</span>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-danger btn-sm"
+                    @click="removeAction(index)"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+                <div class="card-body">
+                  <div class="row mb-3">
+                    <div class="col-md-4">
+                      <label :for="`actionName-${index}`" class="form-label">Name</label>
+                      <input 
+                        type="text" 
+                        class="form-control" 
+                        :id="`actionName-${index}`"
+                        v-model="action.name"
+                        placeholder="Action name"
+                      >
+                    </div>
+                    <div class="col-md-4">
+                      <label :for="`actionActivation-${index}`" class="form-label">Activation</label>
+                      <input 
+                        type="text" 
+                        class="form-control" 
+                        :id="`actionActivation-${index}`"
+                        v-model="action.activation"
+                        placeholder="e.g., Quick, Full"
+                      >
+                    </div>
+                    <div class="col-md-4">
+                      <label :for="`actionDetail-${index}`" class="form-label">Detail</label>
+                      <input 
+                        type="text" 
+                        class="form-control" 
+                        :id="`actionDetail-${index}`"
+                        v-model="action.detail"
+                        placeholder="Action details"
+                      >
+                    </div>
+                  </div>
+                  
+                  <!-- Range -->
+                  <div class="mb-3">
+                    <label class="form-label">Range</label>
+                    <div v-for="(range, rangeIndex) in action.range" :key="`range-${index}-${rangeIndex}`" class="row mb-2">
+                      <div class="col-md-6">
+                        <input 
+                          type="text" 
+                          class="form-control" 
+                          v-model="range.type"
+                          placeholder="Range type"
+                        >
+                      </div>
+                      <div class="col-md-4">
+                        <input 
+                          type="number" 
+                          class="form-control" 
+                          v-model.number="range.val"
+                          placeholder="Value"
+                        >
+                      </div>
+                      <div class="col-md-2">
+                        <button 
+                          type="button" 
+                          class="btn btn-outline-danger btn-sm"
+                          @click="removeRange(index, rangeIndex)"
+                        >
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <button 
+                      type="button" 
+                      class="btn btn-outline-secondary btn-sm"
+                      @click="addRange(index)"
+                    >
+                      <i class="bi bi-plus-circle me-1"></i>
+                      Add Range
+                    </button>
+                  </div>
+                  
+                  <!-- Damage -->
+                  <div class="mb-3">
+                    <label class="form-label">Damage</label>
+                    <div v-for="(damage, damageIndex) in action.damage" :key="`damage-${index}-${damageIndex}`" class="row mb-2">
+                      <div class="col-md-6">
+                        <input 
+                          type="text" 
+                          class="form-control" 
+                          v-model="damage.type"
+                          placeholder="Damage type"
+                        >
+                      </div>
+                      <div class="col-md-4">
+                        <input 
+                          type="text" 
+                          class="form-control" 
+                          v-model="damage.val"
+                          placeholder="Value"
+                        >
+                      </div>
+                      <div class="col-md-2">
+                        <button 
+                          type="button" 
+                          class="btn btn-outline-danger btn-sm"
+                          @click="removeDamage(index, damageIndex)"
+                        >
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <button 
+                      type="button" 
+                      class="btn btn-outline-secondary btn-sm"
+                      @click="addDamage(index)"
+                    >
+                      <i class="bi bi-plus-circle me-1"></i>
+                      Add Damage
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <button 
+                type="button" 
+                class="btn btn-outline-primary btn-sm"
+                @click="addAction"
+              >
+                <i class="bi bi-plus-circle me-1"></i>
+                Add Action
+              </button>
+            </div>
+
+            <!-- Synergies Section -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <h6 class="text-primary border-bottom pb-2">
+                  <i class="bi bi-link me-2"></i>
+                  Synergies
+                </h6>
+              </div>
+            </div>
+            
+            <div v-for="(synergy, index) in form.synergies" :key="`synergy-${index}`" class="row mb-3">
+              <div class="col-md-5">
+                <label :for="`synergyLocations-${index}`" class="form-label">Locations</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  :id="`synergyLocations-${index}`"
+                  v-model="synergy.locationsText"
+                  placeholder="Comma-separated locations"
+                >
+                <div class="form-text">Enter locations separated by commas</div>
+              </div>
+              <div class="col-md-6">
+                <label :for="`synergyDetail-${index}`" class="form-label">Detail</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  :id="`synergyDetail-${index}`"
+                  v-model="synergy.detail"
+                  placeholder="Synergy details"
+                >
+              </div>
+              <div class="col-md-1 d-flex align-items-end">
+                <button 
+                  type="button" 
+                  class="btn btn-outline-danger btn-sm"
+                  @click="removeSynergy(index)"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
               <div class="form-text">Detailed description of the reserve. HTML formatting is supported.</div>
+            </div>
+            
+            <div class="mb-3">
+              <button 
+                type="button" 
+                class="btn btn-outline-primary btn-sm"
+                @click="addSynergy"
+              >
+                <i class="bi bi-plus-circle me-1"></i>
+                Add Synergy
+              </button>
             </div>
           </div>
           
@@ -137,8 +468,8 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { RESERVE_TYPES } from '../services/graphql.js'
+import { ref, reactive, onMounted } from 'vue'
+import { generateReserveId } from '../services/graphql.js'
 
 // Define emits
 const emit = defineEmits(['close', 'save'])
@@ -149,20 +480,21 @@ const form = reactive({
   name: '',
   type: '',
   label: '',
-  description: ''
+  description: '',
+  bonuses: [],
+  deployables: [],
+  actions: [],
+  synergies: []
 })
 
 // Form state
 const isSubmitting = ref(false)
 const errors = ref({})
 
-// Reserve type options
-const reserveTypeOptions = [
-  { value: RESERVE_TYPES.BONUS, label: 'Bonus' },
-  { value: RESERVE_TYPES.RESOURCE, label: 'Resource' },
-  { value: RESERVE_TYPES.MECH, label: 'Mech' },
-  { value: RESERVE_TYPES.TACTICAL, label: 'Tactical' }
-]
+// Initialize form with generated ID
+onMounted(() => {
+  form.id = generateReserveId()
+})
 
 // Validation
 const validateForm = () => {
@@ -183,14 +515,98 @@ const validateForm = () => {
   }
   
   if (!form.label.trim()) {
-    errors.value.label = 'Label is required'
+    errors.value.label = 'Reserve label is required'
   }
   
   if (!form.description.trim()) {
-    errors.value.description = 'Description is required'
+    errors.value.description = 'Reserve description is required'
   }
   
   return Object.keys(errors.value).length === 0
+}
+
+// Bonus management
+const addBonus = () => {
+  form.bonuses.push({ id: '', val: 0 })
+}
+
+const removeBonus = (index) => {
+  form.bonuses.splice(index, 1)
+}
+
+// Deployable management
+const addDeployable = () => {
+  form.deployables.push({ name: '', type: '', size: 0, detail: '' })
+}
+
+const removeDeployable = (index) => {
+  form.deployables.splice(index, 1)
+}
+
+// Action management
+const addAction = () => {
+  form.actions.push({
+    name: '',
+    activation: '',
+    detail: '',
+    range: [],
+    damage: []
+  })
+}
+
+const removeAction = (index) => {
+  form.actions.splice(index, 1)
+}
+
+const addRange = (actionIndex) => {
+  form.actions[actionIndex].range.push({ type: '', val: 0 })
+}
+
+const removeRange = (actionIndex, rangeIndex) => {
+  form.actions[actionIndex].range.splice(rangeIndex, 1)
+}
+
+const addDamage = (actionIndex) => {
+  form.actions[actionIndex].damage.push({ type: '', val: '' })
+}
+
+const removeDamage = (actionIndex, damageIndex) => {
+  form.actions[actionIndex].damage.splice(damageIndex, 1)
+}
+
+// Synergy management
+const addSynergy = () => {
+  form.synergies.push({ locationsText: '', detail: '' })
+}
+
+const removeSynergy = (index) => {
+  form.synergies.splice(index, 1)
+}
+
+// Transform form data for GraphQL
+const transformFormData = () => {
+  const transformed = {
+    id: form.id,
+    name: form.name,
+    type: form.type,
+    label: form.label,
+    description: form.description,
+    bonuses: form.bonuses.filter(b => b.id.trim() && b.val !== null),
+    deployables: form.deployables.filter(d => d.name.trim()),
+    actions: form.actions.filter(a => a.name.trim()).map(action => ({
+      name: action.name,
+      activation: action.activation,
+      detail: action.detail,
+      range: action.range.filter(r => r.type.trim()),
+      damage: action.damage.filter(d => d.type.trim())
+    })),
+    synergies: form.synergies.filter(s => s.detail.trim()).map(synergy => ({
+      locations: synergy.locationsText.split(',').map(loc => loc.trim()).filter(loc => loc),
+      detail: synergy.detail
+    }))
+  }
+  
+  return transformed
 }
 
 // Handle form submission
@@ -202,13 +618,14 @@ const handleSubmit = async () => {
   isSubmitting.value = true
   
   try {
-    // Emit the save event with form data
-    emit('save', { ...form })
+    // Transform form data to match GraphQL schema
+    const transformedData = transformFormData()
+    
+    // Emit the save event with transformed data
+    emit('save', transformedData)
     
     // Reset form
-    Object.keys(form).forEach(key => {
-      form[key] = ''
-    })
+    resetForm()
     
   } catch (error) {
     console.error('Error saving reserve:', error)
@@ -216,6 +633,20 @@ const handleSubmit = async () => {
   } finally {
     isSubmitting.value = false
   }
+}
+
+// Reset form
+const resetForm = () => {
+  form.id = generateReserveId()
+  form.name = ''
+  form.type = ''
+  form.label = ''
+  form.description = ''
+  form.bonuses = []
+  form.deployables = []
+  form.actions = []
+  form.synergies = []
+  errors.value = {}
 }
 </script>
 
@@ -245,5 +676,24 @@ const handleSubmit = async () => {
 .spinner-border-sm {
   width: 1rem;
   height: 1rem;
+}
+
+.card {
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  font-weight: 600;
+}
+
+.text-primary {
+  color: #0d6efd !important;
+}
+
+.border-bottom {
+  border-bottom: 2px solid #dee2e6 !important;
 }
 </style>

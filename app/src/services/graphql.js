@@ -331,10 +331,15 @@ export const api = {
 
 // Reserve type constants
 export const RESERVE_TYPES = {
-  BONUS: 'BONUS',
-  RESOURCE: 'RESOURCE', 
-  MECH: 'MECH',
-  TACTICAL: 'TACTICAL'
+  BONUS: 'Bonus',
+  RESOURCE: 'Resource', 
+  MECH: 'Mech',
+  TACTICAL: 'Tactical'
+}
+
+// Helper function to generate unique IDs
+export function generateReserveId() {
+  return `reserve_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 }
 
 // Helper function to format dates

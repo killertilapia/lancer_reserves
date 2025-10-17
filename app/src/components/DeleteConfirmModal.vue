@@ -5,7 +5,7 @@
         <div class="modal-header bg-danger text-white">
           <h5 class="modal-title">
             <i class="bi bi-exclamation-triangle me-2"></i>
-            Confirm Delete
+            Confirm Delete Reserve
           </h5>
           <button 
             type="button" 
@@ -16,43 +16,32 @@
         </div>
         
         <div class="modal-body">
-          <!-- Error Alert -->
-          <div v-if="error" class="alert alert-danger" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            {{ error }}
+          <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Warning:</strong> This action cannot be undone!
           </div>
-
-          <div class="text-center mb-3">
-            <i class="bi bi-trash fs-1 text-danger"></i>
-          </div>
-
-          <p class="mb-3">
-            Are you sure you want to delete this reserve? This action cannot be undone.
-          </p>
-
-          <div class="card bg-light">
+          
+          <p class="mb-3">Are you sure you want to delete this reserve?</p>
+          
+          <div class="card">
             <div class="card-body">
-              <h6 class="card-subtitle mb-2 text-muted">Reserve Details:</h6>
-              <p class="mb-1">
-                <strong>ID:</strong> <code>{{ reserve.id }}</code>
-              </p>
-              <p class="mb-1">
-                <strong>Name:</strong> {{ reserve.name }}
-              </p>
-              <p class="mb-0">
-                <strong>Type:</strong> 
-                <span 
-                  class="badge" 
-                  :class="{
-                    'bg-success': reserve.type === 'BONUS',
-                    'bg-warning': reserve.type === 'RESOURCE',
-                    'bg-info': reserve.type === 'MECH',
-                    'bg-secondary': reserve.type === 'TACTICAL'
-                  }"
-                >
-                  {{ reserve.type }}
-                </span>
-              </p>
+              <dl class="row mb-0">
+                <dt class="col-sm-3">ID:</dt>
+                <dd class="col-sm-9">
+                  <code>{{ reserve.id }}</code>
+                </dd>
+                
+                <dt class="col-sm-3">Name:</dt>
+                <dd class="col-sm-9">{{ reserve.name }}</dd>
+                
+                <dt class="col-sm-3">Type:</dt>
+                <dd class="col-sm-9">
+                  <span class="badge bg-secondary">{{ reserve.type }}</span>
+                </dd>
+                
+                <dt class="col-sm-3">Label:</dt>
+                <dd class="col-sm-9">{{ reserve.label }}</dd>
+              </dl>
             </div>
           </div>
         </div>
@@ -62,17 +51,18 @@
             type="button" 
             class="btn btn-secondary" 
             @click="$emit('close')"
-            :disabled="isDeleting"
           >
+            <i class="bi bi-x-circle me-1"></i>
             Cancel
           </button>
           <button 
             type="button" 
             class="btn btn-danger"
-            @click="handleDelete"
+            @click="confirmDelete"
             :disabled="isDeleting"
           >
             <span v-if="isDeleting" class="spinner-border spinner-border-sm me-2" role="status"></span>
+            <i v-else class="bi bi-trash me-1"></i>
             {{ isDeleting ? 'Deleting...' : 'Delete Reserve' }}
           </button>
         </div>
@@ -97,18 +87,17 @@ const emit = defineEmits(['close', 'confirm'])
 
 // State
 const isDeleting = ref(false)
-const error = ref(null)
 
-// Handle delete confirmation
-const handleDelete = async () => {
+// Confirm deletion
+const confirmDelete = async () => {
   isDeleting.value = true
-  error.value = null
   
   try {
+    // Emit the confirm event with reserve ID
     emit('confirm', props.reserve.id)
-  } catch (err) {
-    error.value = 'Failed to delete reserve. Please try again.'
-    console.error('Error deleting reserve:', err)
+  } catch (error) {
+    console.error('Error confirming delete:', error)
+  } finally {
     isDeleting.value = false
   }
 }
@@ -127,7 +116,8 @@ const handleDelete = async () => {
 }
 
 .card {
-  border: none;
+  border: 1px solid #dee2e6;
+  background-color: #f8f9fa;
 }
 
 .btn {
@@ -141,7 +131,27 @@ const handleDelete = async () => {
 }
 
 code {
-  font-size: 0.9em;
   color: #d63384;
+  background-color: #f8f9fa;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+
+dl {
+  margin-bottom: 0;
+}
+
+dt {
+  font-weight: 600;
+}
+
+dd {
+  margin-bottom: 0.5rem;
+}
+
+dd:last-child {
+  margin-bottom: 0;
 }
 </style>
+

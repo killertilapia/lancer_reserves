@@ -169,6 +169,7 @@ The frontend uses the Lancer TTRPG reserve schema:
 
 - **Vue 3**: Progressive JavaScript framework
 - **Composition API**: Vue's modern API for component logic
+- **Pinia**: State management library for Vue
 - **Bootstrap 5**: CSS framework for responsive design
 - **Bootstrap Icons**: Icon library
 - **Vite**: Build tool and development server
@@ -178,6 +179,7 @@ The frontend uses the Lancer TTRPG reserve schema:
 ## Development Notes
 
 - All components use the Composition API with `<script setup>` syntax
+- Pinia provides centralized state management for reserves data
 - Bootstrap 5 is loaded via CDN in the HTML template
 - Components are organized in a logical folder structure
 - GraphQL integration with error handling and loading states
