@@ -8,7 +8,7 @@
             <i class="bi bi-shield-check text-primary me-2"></i>
             Reserves Dashboard
           </h1>
-          <button class="btn btn-primary" @click="showAddReserveModal = true">
+          <button class="btn btn-primary" @click="openAddReserveModal">
             <i class="bi bi-plus-circle me-1"></i>
             Add Reserve
           </button>
@@ -16,8 +16,29 @@
       </div>
     </div>
 
+    <!-- Error Alert -->
+    <div v-if="error" class="row mb-4">
+      <div class="col-12">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          {{ error }}
+          <button type="button" class="btn-close" @click="clearError" aria-label="Close"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div v-if="isLoading" class="row mb-4">
+      <div class="col-12 text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading reserves...</p>
+      </div>
+    </div>
+
     <!-- Stats Cards -->
-    <div class="row mb-4">
+    <div v-if="!isLoading" class="row mb-4">
       <div class="col-md-3 mb-3">
         <div class="card bg-primary text-white">
           <div class="card-body">
@@ -39,11 +60,11 @@
           <div class="card-body">
             <div class="d-flex justify-content-between">
               <div>
-                <h6 class="card-title">Active</h6>
-                <h3 class="mb-0">{{ activeReserves }}</h3>
+                <h6 class="card-title">Bonus</h6>
+                <h3 class="mb-0">{{ bonusReserves }}</h3>
               </div>
               <div class="align-self-center">
-                <i class="bi bi-check-circle fs-1"></i>
+                <i class="bi bi-star fs-1"></i>
               </div>
             </div>
           </div>
@@ -55,11 +76,11 @@
           <div class="card-body">
             <div class="d-flex justify-content-between">
               <div>
-                <h6 class="card-title">Pending</h6>
-                <h3 class="mb-0">{{ pendingReserves }}</h3>
+                <h6 class="card-title">Resource</h6>
+                <h3 class="mb-0">{{ resourceReserves }}</h3>
               </div>
               <div class="align-self-center">
-                <i class="bi bi-clock fs-1"></i>
+                <i class="bi bi-box fs-1"></i>
               </div>
             </div>
           </div>
@@ -84,7 +105,7 @@
     </div>
 
     <!-- Reserves Table -->
-    <div class="row">
+    <div v-if="!isLoading" class="row">
       <div class="col-12">
         <div class="card">
           <div class="card-header">
@@ -93,15 +114,19 @@
               Recent Reserves
             </h5>
           </div>
-          <div class="card-body">
-            <div class="table-responsive">
+            <div class="card-body">
+              <div v-if="reserves.length === 0" class="text-center py-4">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <p class="text-muted mt-2">No reserves found. Create your first reserve!</p>
+              </div>
+              <div v-else class="table-responsive">
               <table class="table table-hover">
                 <thead>
                   <tr>
                     <th>ID</th>
                     <th>Name</th>
                     <th>Type</th>
-                    <th>Status</th>
+                    <th>Label</th>
                     <th>Created</th>
                     <th>Actions</th>
                   </tr>
@@ -113,18 +138,7 @@
                     <td>
                       <span class="badge bg-secondary">{{ reserve.type }}</span>
                     </td>
-                    <td>
-                      <span 
-                        class="badge" 
-                        :class="{
-                          'bg-success': reserve.status === 'active',
-                          'bg-warning': reserve.status === 'pending',
-                          'bg-danger': reserve.status === 'inactive'
-                        }"
-                      >
-                        {{ reserve.status }}
-                      </span>
-                    </td>
+                    <td>{{ reserve.label }}</td>
                     <td>{{ formatDate(reserve.createdAt) }}</td>
                     <td>
                       <button 
@@ -135,7 +149,7 @@
                       </button>
                       <button 
                         class="btn btn-sm btn-outline-danger"
-                        @click="deleteReserve(reserve.id)"
+                        @click="confirmDeleteReserve(reserve)"
                       >
                         <i class="bi bi-trash"></i>
                       </button>
@@ -152,88 +166,110 @@
     <!-- Add Reserve Modal -->
     <AddReserveModal 
       v-if="showAddReserveModal"
-      @close="showAddReserveModal = false"
+      @close="closeAddReserveModal"
       @save="handleAddReserve"
+    />
+
+    <!-- Edit Reserve Modal -->
+    <EditReserveModal 
+      v-if="showEditReserveModal && selectedReserve"
+      :reserve="selectedReserve"
+      @close="closeEditReserveModal"
+      @save="handleEditReserve"
+    />
+
+    <!-- Delete Confirm Modal -->
+    <DeleteConfirmModal 
+      v-if="showDeleteConfirmModal && selectedReserve"
+      :reserve="selectedReserve"
+      @close="closeDeleteConfirmModal"
+      @confirm="handleDeleteReserve"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useReservesStore } from '../stores/reserves.js'
+import { formatDate } from '../services/graphql.js'
 import AddReserveModal from './AddReserveModal.vue'
+import EditReserveModal from './EditReserveModal.vue'
+import DeleteConfirmModal from './DeleteConfirmModal.vue'
 
-// Reactive data
-const reserves = ref([
-  {
-    id: 1,
-    name: 'Emergency Fund',
-    type: 'Financial',
-    status: 'active',
-    createdAt: new Date('2024-01-15')
-  },
-  {
-    id: 2,
-    name: 'Equipment Reserve',
-    type: 'Physical',
-    status: 'pending',
-    createdAt: new Date('2024-01-20')
-  },
-  {
-    id: 3,
-    name: 'Personnel Backup',
-    type: 'Human',
-    status: 'active',
-    createdAt: new Date('2024-01-25')
-  }
-])
+// Use Pinia store
+const reservesStore = useReservesStore()
 
-const showAddReserveModal = ref(false)
+// Use storeToRefs for reactive state
+const {
+  reserves,
+  isLoading,
+  error,
+  showAddReserveModal,
+  showEditReserveModal,
+  showDeleteConfirmModal,
+  selectedReserve,
+  totalReserves,
+  bonusReserves,
+  resourceReserves,
+  mechReserves,
+  tacticalReserves,
+  monthlyReserves
+} = storeToRefs(reservesStore)
 
-// Computed properties
-const totalReserves = computed(() => reserves.value.length)
-const activeReserves = computed(() => reserves.value.filter(r => r.status === 'active').length)
-const pendingReserves = computed(() => reserves.value.filter(r => r.status === 'pending').length)
-const monthlyReserves = computed(() => {
-  const currentMonth = new Date().getMonth()
-  const currentYear = new Date().getFullYear()
-  return reserves.value.filter(r => {
-    const reserveDate = new Date(r.createdAt)
-    return reserveDate.getMonth() === currentMonth && reserveDate.getFullYear() === currentYear
-  }).length
-})
+// Access actions directly from store
+const {
+  loadReserves,
+  createReserve,
+  updateReserve,
+  deleteReserve,
+  openAddReserveModal,
+  closeAddReserveModal,
+  openEditReserveModal,
+  closeEditReserveModal,
+  openDeleteConfirmModal,
+  closeDeleteConfirmModal,
+  clearError
+} = reservesStore
 
 // Methods
-const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
-
 const editReserve = (reserve) => {
-  console.log('Edit reserve:', reserve)
-  // TODO: Implement edit functionality
+  openEditReserveModal(reserve)
 }
 
-const deleteReserve = (id) => {
-  if (confirm('Are you sure you want to delete this reserve?')) {
-    reserves.value = reserves.value.filter(r => r.id !== id)
+const confirmDeleteReserve = (reserve) => {
+  openDeleteConfirmModal(reserve)
+}
+
+const handleAddReserve = async (newReserve) => {
+  try {
+    await createReserve(newReserve)
+  } catch (err) {
+    // Error is handled in the store
+    console.error('Failed to create reserve:', err)
   }
 }
 
-const handleAddReserve = (newReserve) => {
-  const id = Math.max(...reserves.value.map(r => r.id)) + 1
-  reserves.value.push({
-    id,
-    ...newReserve,
-    createdAt: new Date()
-  })
-  showAddReserveModal.value = false
+const handleEditReserve = async (id, updateData) => {
+  try {
+    await updateReserve(id, updateData)
+  } catch (err) {
+    // Error is handled in the store
+    console.error('Failed to update reserve:', err)
+  }
+}
+
+const handleDeleteReserve = async (id) => {
+  try {
+    await deleteReserve(id)
+  } catch (err) {
+    // Error is handled in the store
+    console.error('Failed to delete reserve:', err)
+  }
 }
 
 onMounted(() => {
-  console.log('ReservesDashboard mounted')
+  loadReserves()
 })
 </script>
 

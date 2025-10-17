@@ -4,8 +4,8 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">
-            <i class="bi bi-plus-circle me-2"></i>
-            Add New Lancer Reserve
+            <i class="bi bi-pencil me-2"></i>
+            Edit Lancer Reserve
           </h5>
           <button 
             type="button" 
@@ -29,24 +29,24 @@
             
             <div class="row">
               <div class="col-md-6 mb-3">
-                <label for="reserveId" class="form-label">Reserve ID *</label>
+                <label for="editReserveId" class="form-label">Reserve ID</label>
                 <input 
                   type="text" 
                   class="form-control" 
-                  id="reserveId"
+                  id="editReserveId"
                   v-model="form.id"
                   readonly
-                  placeholder="Auto-generated"
+                  disabled
                 >
-                <div class="form-text">This ID is automatically generated</div>
+                <div class="form-text">ID cannot be changed</div>
               </div>
               
               <div class="col-md-6 mb-3">
-                <label for="reserveName" class="form-label">Reserve Name *</label>
+                <label for="editReserveName" class="form-label">Reserve Name *</label>
                 <input 
                   type="text" 
                   class="form-control" 
-                  id="reserveName"
+                  id="editReserveName"
                   v-model="form.name"
                   :class="{ 'is-invalid': errors.name }"
                   placeholder="Enter reserve name"
@@ -60,10 +60,10 @@
             
             <div class="row">
               <div class="col-md-6 mb-3">
-                <label for="reserveType" class="form-label">Type *</label>
+                <label for="editReserveType" class="form-label">Type *</label>
                 <select 
                   class="form-select" 
-                  id="reserveType"
+                  id="editReserveType"
                   v-model="form.type"
                   :class="{ 'is-invalid': errors.type }"
                   required
@@ -80,11 +80,11 @@
               </div>
               
               <div class="col-md-6 mb-3">
-                <label for="reserveLabel" class="form-label">Label *</label>
+                <label for="editReserveLabel" class="form-label">Label *</label>
                 <input 
                   type="text" 
                   class="form-control" 
-                  id="reserveLabel"
+                  id="editReserveLabel"
                   v-model="form.label"
                   :class="{ 'is-invalid': errors.label }"
                   placeholder="Enter reserve label"
@@ -97,10 +97,10 @@
             </div>
             
             <div class="mb-3">
-              <label for="reserveDescription" class="form-label">Description *</label>
+              <label for="editReserveDescription" class="form-label">Description *</label>
               <textarea 
                 class="form-control" 
-                id="reserveDescription"
+                id="editReserveDescription"
                 v-model="form.description"
                 :class="{ 'is-invalid': errors.description }"
                 rows="3"
@@ -124,21 +124,21 @@
             
             <div v-for="(bonus, index) in form.bonuses" :key="`bonus-${index}`" class="row mb-3">
               <div class="col-md-5">
-                <label :for="`bonusId-${index}`" class="form-label">Bonus ID</label>
+                <label :for="`editBonusId-${index}`" class="form-label">Bonus ID</label>
                 <input 
                   type="text" 
                   class="form-control" 
-                  :id="`bonusId-${index}`"
+                  :id="`editBonusId-${index}`"
                   v-model="bonus.id"
                   placeholder="e.g., accuracy, damage"
                 >
               </div>
               <div class="col-md-5">
-                <label :for="`bonusVal-${index}`" class="form-label">Value</label>
+                <label :for="`editBonusVal-${index}`" class="form-label">Value</label>
                 <input 
                   type="number" 
                   class="form-control" 
-                  :id="`bonusVal-${index}`"
+                  :id="`editBonusVal-${index}`"
                   v-model.number="bonus.val"
                   placeholder="e.g., 1, 2, 3"
                 >
@@ -177,41 +177,41 @@
             
             <div v-for="(deployable, index) in form.deployables" :key="`deployable-${index}`" class="row mb-3">
               <div class="col-md-3">
-                <label :for="`deployableName-${index}`" class="form-label">Name</label>
+                <label :for="`editDeployableName-${index}`" class="form-label">Name</label>
                 <input 
                   type="text" 
                   class="form-control" 
-                  :id="`deployableName-${index}`"
+                  :id="`editDeployableName-${index}`"
                   v-model="deployable.name"
                   placeholder="Deployable name"
                 >
               </div>
               <div class="col-md-2">
-                <label :for="`deployableType-${index}`" class="form-label">Type</label>
+                <label :for="`editDeployableType-${index}`" class="form-label">Type</label>
                 <input 
                   type="text" 
                   class="form-control" 
-                  :id="`deployableType-${index}`"
+                  :id="`editDeployableType-${index}`"
                   v-model="deployable.type"
                   placeholder="Type"
                 >
               </div>
               <div class="col-md-2">
-                <label :for="`deployableSize-${index}`" class="form-label">Size</label>
+                <label :for="`editDeployableSize-${index}`" class="form-label">Size</label>
                 <input 
                   type="number" 
                   class="form-control" 
-                  :id="`deployableSize-${index}`"
+                  :id="`editDeployableSize-${index}`"
                   v-model.number="deployable.size"
                   placeholder="Size"
                 >
               </div>
               <div class="col-md-4">
-                <label :for="`deployableDetail-${index}`" class="form-label">Detail</label>
+                <label :for="`editDeployableDetail-${index}`" class="form-label">Detail</label>
                 <input 
                   type="text" 
                   class="form-control" 
-                  :id="`deployableDetail-${index}`"
+                  :id="`editDeployableDetail-${index}`"
                   v-model="deployable.detail"
                   placeholder="Details"
                 >
@@ -263,31 +263,31 @@
                 <div class="card-body">
                   <div class="row mb-3">
                     <div class="col-md-4">
-                      <label :for="`actionName-${index}`" class="form-label">Name</label>
+                      <label :for="`editActionName-${index}`" class="form-label">Name</label>
                       <input 
                         type="text" 
                         class="form-control" 
-                        :id="`actionName-${index}`"
+                        :id="`editActionName-${index}`"
                         v-model="action.name"
                         placeholder="Action name"
                       >
                     </div>
                     <div class="col-md-4">
-                      <label :for="`actionActivation-${index}`" class="form-label">Activation</label>
+                      <label :for="`editActionActivation-${index}`" class="form-label">Activation</label>
                       <input 
                         type="text" 
                         class="form-control" 
-                        :id="`actionActivation-${index}`"
+                        :id="`editActionActivation-${index}`"
                         v-model="action.activation"
                         placeholder="e.g., Quick, Full"
                       >
                     </div>
                     <div class="col-md-4">
-                      <label :for="`actionDetail-${index}`" class="form-label">Detail</label>
+                      <label :for="`editActionDetail-${index}`" class="form-label">Detail</label>
                       <input 
                         type="text" 
                         class="form-control" 
-                        :id="`actionDetail-${index}`"
+                        :id="`editActionDetail-${index}`"
                         v-model="action.detail"
                         placeholder="Action details"
                       >
@@ -400,22 +400,22 @@
             
             <div v-for="(synergy, index) in form.synergies" :key="`synergy-${index}`" class="row mb-3">
               <div class="col-md-5">
-                <label :for="`synergyLocations-${index}`" class="form-label">Locations</label>
+                <label :for="`editSynergyLocations-${index}`" class="form-label">Locations</label>
                 <input 
                   type="text" 
                   class="form-control" 
-                  :id="`synergyLocations-${index}`"
+                  :id="`editSynergyLocations-${index}`"
                   v-model="synergy.locationsText"
                   placeholder="Comma-separated locations"
                 >
                 <div class="form-text">Enter locations separated by commas</div>
               </div>
               <div class="col-md-6">
-                <label :for="`synergyDetail-${index}`" class="form-label">Detail</label>
+                <label :for="`editSynergyDetail-${index}`" class="form-label">Detail</label>
                 <input 
                   type="text" 
                   class="form-control" 
-                  :id="`synergyDetail-${index}`"
+                  :id="`editSynergyDetail-${index}`"
                   v-model="synergy.detail"
                   placeholder="Synergy details"
                 >
@@ -457,7 +457,7 @@
               :disabled="isSubmitting"
             >
               <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
-              {{ isSubmitting ? 'Saving...' : 'Save Reserve' }}
+              {{ isSubmitting ? 'Updating...' : 'Update Reserve' }}
             </button>
           </div>
         </form>
@@ -467,8 +467,15 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { generateReserveId } from '../services/graphql.js'
+import { ref, reactive, watch } from 'vue'
+
+// Define props
+const props = defineProps({
+  reserve: {
+    type: Object,
+    required: true
+  }
+})
 
 // Define emits
 const emit = defineEmits(['close', 'save'])
@@ -490,10 +497,40 @@ const form = reactive({
 const isSubmitting = ref(false)
 const errors = ref({})
 
-// Initialize form with generated ID
-onMounted(() => {
-  form.id = generateReserveId()
-})
+// Load reserve data into form
+const loadReserveData = (reserve) => {
+  if (!reserve) return
+  
+  form.id = reserve.id
+  form.name = reserve.name
+  form.type = reserve.type
+  form.label = reserve.label
+  form.description = reserve.description
+  
+  // Load bonuses
+  form.bonuses = reserve.bonuses ? JSON.parse(JSON.stringify(reserve.bonuses)) : []
+  
+  // Load deployables
+  form.deployables = reserve.deployables ? JSON.parse(JSON.stringify(reserve.deployables)) : []
+  
+  // Load actions (with nested range and damage)
+  form.actions = reserve.actions ? JSON.parse(JSON.stringify(reserve.actions)).map(action => ({
+    ...action,
+    range: action.range || [],
+    damage: action.damage || []
+  })) : []
+  
+  // Load synergies (convert locations array to comma-separated text)
+  form.synergies = reserve.synergies ? reserve.synergies.map(s => ({
+    locationsText: Array.isArray(s.locations) ? s.locations.join(', ') : s.locations,
+    detail: s.detail
+  })) : []
+}
+
+// Watch for reserve changes
+watch(() => props.reserve, (newReserve) => {
+  loadReserveData(newReserve)
+}, { immediate: true })
 
 // Validation
 const validateForm = () => {
@@ -579,7 +616,6 @@ const removeSynergy = (index) => {
 // Transform form data for GraphQL
 const transformFormData = () => {
   const transformed = {
-    id: form.id,
     name: form.name,
     type: form.type,
     label: form.label,
@@ -614,31 +650,14 @@ const handleSubmit = async () => {
     // Transform form data to match GraphQL schema
     const transformedData = transformFormData()
     
-    // Emit the save event with transformed data
-    emit('save', transformedData)
-    
-    // Reset form
-    resetForm()
+    // Emit the save event with ID and transformed data
+    emit('save', form.id, transformedData)
     
   } catch (error) {
-    console.error('Error saving reserve:', error)
+    console.error('Error updating reserve:', error)
   } finally {
     isSubmitting.value = false
   }
-}
-
-// Reset form
-const resetForm = () => {
-  form.id = generateReserveId()
-  form.name = ''
-  form.type = ''
-  form.label = ''
-  form.description = ''
-  form.bonuses = []
-  form.deployables = []
-  form.actions = []
-  form.synergies = []
-  errors.value = {}
 }
 </script>
 
@@ -689,3 +708,4 @@ const resetForm = () => {
   border-bottom: 2px solid #dee2e6 !important;
 }
 </style>
+

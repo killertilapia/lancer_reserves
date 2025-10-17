@@ -72,8 +72,8 @@ class ReserveType:
     deployables: Optional[List[DeployableType]] = None
     actions: Optional[List[ActionType]] = None
     synergies: Optional[List[SynergyType]] = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime = strawberry.field(name="createdAt")
+    updated_at: datetime = strawberry.field(name="updatedAt")
 
 
 @strawberry.input

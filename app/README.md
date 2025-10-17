@@ -101,18 +101,23 @@ A modal component for adding new reserves with:
 
 - **Vue 3**: Progressive JavaScript framework
 - **Composition API**: Vue's modern API for component logic
+- **Pinia**: State management library for Vue
 - **Bootstrap 5**: CSS framework for responsive design
 - **Bootstrap Icons**: Icon library
 - **Vite**: Build tool and development server
+- **GraphQL**: API communication with backend
+- **Native Fetch**: HTTP client for GraphQL requests
 
 ## Development Notes
 
 - All components use the Composition API with `<script setup>` syntax
+- Pinia provides centralized state management for reserves data
 - Bootstrap 5 is loaded via CDN in the HTML template
 - Components are organized in a logical folder structure
-- The application is ready for integration with a backend API
+- GraphQL integration with error handling and loading states
 - Form validation and error handling are implemented
 - Responsive design works on all device sizes
+- Environment-based configuration for different deployment environments
 
 ## Future Enhancements
 
