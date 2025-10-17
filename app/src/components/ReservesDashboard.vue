@@ -92,11 +92,11 @@
           <div class="card-body">
             <div class="d-flex justify-content-between">
               <div>
-                <h6 class="card-title">This Month</h6>
-                <h3 class="mb-0">{{ monthlyReserves }}</h3>
+                <h6 class="card-title">Mech/Tactical</h6>
+                <h3 class="mb-0">{{ mechReserves + tacticalReserves }}</h3>
               </div>
               <div class="align-self-center">
-                <i class="bi bi-calendar-month fs-1"></i>
+                <i class="bi bi-gear fs-1"></i>
               </div>
             </div>
           </div>
@@ -111,7 +111,7 @@
           <div class="card-header">
             <h5 class="card-title mb-0">
               <i class="bi bi-table me-2"></i>
-              Recent Reserves
+              Reserves
             </h5>
           </div>
             <div class="card-body">
@@ -133,10 +133,11 @@
                 </thead>
                 <tbody>
                   <tr v-for="reserve in reserves" :key="reserve.id">
-                    <td>{{ reserve.id }}</td>
-                    <td>{{ reserve.name }}</td>
                     <td>
-                      <span class="badge bg-secondary">{{ reserve.type }}</span>
+                      <code class="small">{{ reserve.id }}</code>
+                    </td>
+                    <td>
+                      <strong>{{ reserve.name }}</strong>
                     </td>
                     <td>{{ reserve.label }}</td>
                     <td>{{ formatDate(reserve.createdAt) }}</td>
@@ -144,6 +145,7 @@
                       <button 
                         class="btn btn-sm btn-outline-primary me-1"
                         @click="editReserve(reserve)"
+                        title="Edit Reserve"
                       >
                         <i class="bi bi-pencil"></i>
                       </button>

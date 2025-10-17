@@ -429,6 +429,7 @@
                   <i class="bi bi-trash"></i>
                 </button>
               </div>
+              <div class="form-text">Detailed description of the reserve. HTML formatting is supported.</div>
             </div>
             
             <div class="mb-3">
@@ -498,6 +499,12 @@ onMounted(() => {
 // Validation
 const validateForm = () => {
   errors.value = {}
+  
+  if (!form.id.trim()) {
+    errors.value.id = 'Reserve ID is required'
+  } else if (!/^[a-zA-Z0-9_-]+$/.test(form.id)) {
+    errors.value.id = 'ID can only contain letters, numbers, underscores, and hyphens'
+  }
   
   if (!form.name.trim()) {
     errors.value.name = 'Reserve name is required'
@@ -622,6 +629,7 @@ const handleSubmit = async () => {
     
   } catch (error) {
     console.error('Error saving reserve:', error)
+    errors.value.general = 'Failed to save reserve. Please try again.'
   } finally {
     isSubmitting.value = false
   }

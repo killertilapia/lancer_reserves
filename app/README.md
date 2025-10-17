@@ -33,6 +33,7 @@ app/
 
 - Node.js (version 16 or higher)
 - npm or yarn
+- Backend API running (see backend documentation)
 
 ### Installation
 
@@ -46,14 +47,30 @@ app/
    npm install
    ```
 
+3. Configure environment variables:
+   ```bash
+   # Copy the example environment file
+   cp .env.example .env
+   
+   # Edit .env to set your backend URL (default: http://localhost:8000)
+   # VITE_API_BASE_URL=http://localhost:8000
+   ```
+
 ### Development
 
-Start the development server:
-```bash
-npm run dev
-```
+1. Start the backend API (from project root):
+   ```bash
+   cd backend
+   python -m uvicorn main:app --reload
+   ```
 
-The application will be available at `http://localhost:3000`
+2. Start the frontend development server:
+   ```bash
+   cd app
+   npm run dev
+   ```
+
+The application will be available at `http://localhost:3000` and will connect to the backend API.
 
 ### Building for Production
 
@@ -97,6 +114,57 @@ A modal component for adding new reserves with:
 - Loading states
 - Error handling
 
+## Backend Integration
+
+### GraphQL API
+
+The frontend integrates with the FastAPI backend using GraphQL. The API service is located in `src/services/graphql.js` and provides:
+
+**Available Queries:**
+- `fetchReserves(type, skip, limit)` - List reserves with filtering
+- `fetchReserveById(id)` - Get single reserve
+- `fetchRandomReserves(count, type)` - Get random reserves
+- `fetchReservesByLabel(label)` - Search by label
+
+**Available Mutations:**
+- `createReserve(input)` - Create new reserve
+- `updateReserve(id, input)` - Update existing reserve
+- `deleteReserve(id)` - Delete reserve
+
+### Environment Configuration
+
+The backend URL is configurable via environment variables:
+
+```bash
+# .env file
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+**Default Configuration:**
+- Development: `http://localhost:8000`
+- GraphQL Endpoint: `/graphql`
+- CORS enabled for all origins
+
+### Data Schema
+
+The frontend uses the Lancer TTRPG reserve schema:
+
+```javascript
+{
+  id: string,           // Unique identifier
+  name: string,         // Display name
+  type: enum,           // BONUS, RESOURCE, MECH, TACTICAL
+  label: string,        // Category label
+  description: string,  // HTML-compatible description
+  bonuses: array,       // Optional bonus effects
+  deployables: array,   // Optional deployable items
+  actions: array,       // Optional activatable actions
+  synergies: array,     // Optional synergy effects
+  created_at: datetime,
+  updated_at: datetime
+}
+```
+
 ## Technologies Used
 
 - **Vue 3**: Progressive JavaScript framework
@@ -122,8 +190,9 @@ A modal component for adding new reserves with:
 ## Future Enhancements
 
 - Add Vue Router for navigation
-- Integrate with backend API
 - Add state management (Pinia)
 - Implement authentication
-- Add more interactive features
+- Add reserve detail view with full schema display
+- Add search and filtering capabilities
 - Add unit tests
+- Add GraphQL query optimization
