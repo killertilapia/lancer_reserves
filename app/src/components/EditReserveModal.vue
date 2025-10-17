@@ -4,8 +4,8 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">
-            <i class="bi bi-plus-circle me-2"></i>
-            Add New Reserve
+            <i class="bi bi-pencil-square me-2"></i>
+            Edit Reserve
           </h5>
           <button 
             type="button" 
@@ -25,28 +25,24 @@
 
             <div class="row">
               <div class="col-md-6 mb-3">
-                <label for="reserveId" class="form-label">Reserve ID *</label>
+                <label for="editReserveId" class="form-label">Reserve ID</label>
                 <input 
                   type="text" 
                   class="form-control" 
-                  id="reserveId"
+                  id="editReserveId"
                   v-model="form.id"
-                  :class="{ 'is-invalid': errors.id }"
-                  placeholder="e.g., reserve_skill"
-                  required
+                  readonly
+                  disabled
                 >
-                <div v-if="errors.id" class="invalid-feedback">
-                  {{ errors.id }}
-                </div>
-                <div class="form-text">Unique identifier (letters, numbers, underscores, hyphens only)</div>
+                <div class="form-text">ID cannot be changed</div>
               </div>
               
               <div class="col-md-6 mb-3">
-                <label for="reserveName" class="form-label">Reserve Name *</label>
+                <label for="editReserveName" class="form-label">Reserve Name *</label>
                 <input 
                   type="text" 
                   class="form-control" 
-                  id="reserveName"
+                  id="editReserveName"
                   v-model="form.name"
                   :class="{ 'is-invalid': errors.name }"
                   placeholder="Enter reserve name"
@@ -60,10 +56,10 @@
             
             <div class="row">
               <div class="col-md-6 mb-3">
-                <label for="reserveType" class="form-label">Type *</label>
+                <label for="editReserveType" class="form-label">Type *</label>
                 <select 
                   class="form-select" 
-                  id="reserveType"
+                  id="editReserveType"
                   v-model="form.type"
                   :class="{ 'is-invalid': errors.type }"
                   required
@@ -79,11 +75,11 @@
               </div>
               
               <div class="col-md-6 mb-3">
-                <label for="reserveLabel" class="form-label">Label *</label>
+                <label for="editReserveLabel" class="form-label">Label *</label>
                 <input 
                   type="text" 
                   class="form-control" 
-                  id="reserveLabel"
+                  id="editReserveLabel"
                   v-model="form.label"
                   :class="{ 'is-invalid': errors.label }"
                   placeholder="Enter category label"
@@ -96,10 +92,10 @@
             </div>
             
             <div class="mb-3">
-              <label for="reserveDescription" class="form-label">Description *</label>
+              <label for="editReserveDescription" class="form-label">Description *</label>
               <textarea 
                 class="form-control" 
-                id="reserveDescription"
+                id="editReserveDescription"
                 v-model="form.description"
                 :class="{ 'is-invalid': errors.description }"
                 rows="4"
@@ -127,7 +123,7 @@
               :disabled="isSubmitting"
             >
               <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
-              {{ isSubmitting ? 'Saving...' : 'Save Reserve' }}
+              {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
             </button>
           </div>
         </form>
@@ -137,8 +133,16 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { RESERVE_TYPES } from '../services/graphql.js'
+
+// Define props
+const props = defineProps({
+  reserve: {
+    type: Object,
+    required: true
+  }
+})
 
 // Define emits
 const emit = defineEmits(['close', 'save'])
@@ -164,15 +168,18 @@ const reserveTypeOptions = [
   { value: RESERVE_TYPES.TACTICAL, label: 'Tactical' }
 ]
 
+// Initialize form with reserve data
+onMounted(() => {
+  form.id = props.reserve.id
+  form.name = props.reserve.name
+  form.type = props.reserve.type
+  form.label = props.reserve.label
+  form.description = props.reserve.description
+})
+
 // Validation
 const validateForm = () => {
   errors.value = {}
-  
-  if (!form.id.trim()) {
-    errors.value.id = 'Reserve ID is required'
-  } else if (!/^[a-zA-Z0-9_-]+$/.test(form.id)) {
-    errors.value.id = 'ID can only contain letters, numbers, underscores, and hyphens'
-  }
   
   if (!form.name.trim()) {
     errors.value.name = 'Reserve name is required'
@@ -202,18 +209,18 @@ const handleSubmit = async () => {
   isSubmitting.value = true
   
   try {
-    // Emit the save event with form data
-    emit('save', { ...form })
+    // Emit the save event with form data (excluding ID since it can't be changed)
+    const updateData = {
+      name: form.name,
+      type: form.type,
+      label: form.label,
+      description: form.description
+    }
     
-    // Reset form
-    Object.keys(form).forEach(key => {
-      form[key] = ''
-    })
-    
+    emit('save', form.id, updateData)
   } catch (error) {
     console.error('Error saving reserve:', error)
     errors.value.general = 'Failed to save reserve. Please try again.'
-  } finally {
     isSubmitting.value = false
   }
 }
@@ -235,6 +242,11 @@ const handleSubmit = async () => {
 .form-select:focus {
   border-color: #0d6efd;
   box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.form-control:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
 }
 
 .btn {

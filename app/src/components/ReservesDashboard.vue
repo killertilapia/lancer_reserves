@@ -16,8 +16,29 @@
       </div>
     </div>
 
+    <!-- Error Alert -->
+    <div v-if="error" class="row mb-4">
+      <div class="col-12">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          {{ error }}
+          <button type="button" class="btn-close" @click="error = null" aria-label="Close"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div v-if="isLoading" class="row mb-4">
+      <div class="col-12 text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading reserves...</p>
+      </div>
+    </div>
+
     <!-- Stats Cards -->
-    <div class="row mb-4">
+    <div v-if="!isLoading" class="row mb-4">
       <div class="col-md-3 mb-3">
         <div class="card bg-primary text-white">
           <div class="card-body">
@@ -39,11 +60,11 @@
           <div class="card-body">
             <div class="d-flex justify-content-between">
               <div>
-                <h6 class="card-title">Active</h6>
-                <h3 class="mb-0">{{ activeReserves }}</h3>
+                <h6 class="card-title">Bonus</h6>
+                <h3 class="mb-0">{{ bonusReserves }}</h3>
               </div>
               <div class="align-self-center">
-                <i class="bi bi-check-circle fs-1"></i>
+                <i class="bi bi-star fs-1"></i>
               </div>
             </div>
           </div>
@@ -55,11 +76,11 @@
           <div class="card-body">
             <div class="d-flex justify-content-between">
               <div>
-                <h6 class="card-title">Pending</h6>
-                <h3 class="mb-0">{{ pendingReserves }}</h3>
+                <h6 class="card-title">Resource</h6>
+                <h3 class="mb-0">{{ resourceReserves }}</h3>
               </div>
               <div class="align-self-center">
-                <i class="bi bi-clock fs-1"></i>
+                <i class="bi bi-box fs-1"></i>
               </div>
             </div>
           </div>
@@ -71,11 +92,11 @@
           <div class="card-body">
             <div class="d-flex justify-content-between">
               <div>
-                <h6 class="card-title">This Month</h6>
-                <h3 class="mb-0">{{ monthlyReserves }}</h3>
+                <h6 class="card-title">Mech/Tactical</h6>
+                <h3 class="mb-0">{{ mechReserves + tacticalReserves }}</h3>
               </div>
               <div class="align-self-center">
-                <i class="bi bi-calendar-month fs-1"></i>
+                <i class="bi bi-gear fs-1"></i>
               </div>
             </div>
           </div>
@@ -84,58 +105,67 @@
     </div>
 
     <!-- Reserves Table -->
-    <div class="row">
+    <div v-if="!isLoading" class="row">
       <div class="col-12">
         <div class="card">
           <div class="card-header">
             <h5 class="card-title mb-0">
               <i class="bi bi-table me-2"></i>
-              Recent Reserves
+              Reserves
             </h5>
           </div>
           <div class="card-body">
-            <div class="table-responsive">
+            <div v-if="reserves.length === 0" class="text-center py-4">
+              <i class="bi bi-inbox fs-1 text-muted"></i>
+              <p class="text-muted mt-2">No reserves found. Create your first reserve!</p>
+            </div>
+            <div v-else class="table-responsive">
               <table class="table table-hover">
                 <thead>
                   <tr>
                     <th>ID</th>
                     <th>Name</th>
                     <th>Type</th>
-                    <th>Status</th>
+                    <th>Label</th>
                     <th>Created</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="reserve in reserves" :key="reserve.id">
-                    <td>{{ reserve.id }}</td>
-                    <td>{{ reserve.name }}</td>
                     <td>
-                      <span class="badge bg-secondary">{{ reserve.type }}</span>
+                      <code class="small">{{ reserve.id }}</code>
+                    </td>
+                    <td>
+                      <strong>{{ reserve.name }}</strong>
                     </td>
                     <td>
                       <span 
                         class="badge" 
                         :class="{
-                          'bg-success': reserve.status === 'active',
-                          'bg-warning': reserve.status === 'pending',
-                          'bg-danger': reserve.status === 'inactive'
+                          'bg-success': reserve.type === 'BONUS',
+                          'bg-warning': reserve.type === 'RESOURCE',
+                          'bg-info': reserve.type === 'MECH',
+                          'bg-secondary': reserve.type === 'TACTICAL'
                         }"
                       >
-                        {{ reserve.status }}
+                        {{ reserve.type }}
                       </span>
                     </td>
-                    <td>{{ formatDate(reserve.createdAt) }}</td>
+                    <td>{{ reserve.label }}</td>
+                    <td>{{ formatDate(reserve.created_at) }}</td>
                     <td>
                       <button 
                         class="btn btn-sm btn-outline-primary me-1"
                         @click="editReserve(reserve)"
+                        title="Edit Reserve"
                       >
                         <i class="bi bi-pencil"></i>
                       </button>
                       <button 
                         class="btn btn-sm btn-outline-danger"
                         @click="deleteReserve(reserve.id)"
+                        title="Delete Reserve"
                       >
                         <i class="bi bi-trash"></i>
                       </button>
@@ -155,85 +185,113 @@
       @close="showAddReserveModal = false"
       @save="handleAddReserve"
     />
+
+    <!-- Edit Reserve Modal -->
+    <EditReserveModal 
+      v-if="showEditReserveModal && selectedReserve"
+      :reserve="selectedReserve"
+      @close="showEditReserveModal = false; selectedReserve = null"
+      @save="handleEditReserve"
+    />
+
+    <!-- Delete Confirmation Modal -->
+    <DeleteConfirmModal 
+      v-if="showDeleteConfirmModal && selectedReserve"
+      :reserve="selectedReserve"
+      @close="showDeleteConfirmModal = false; selectedReserve = null"
+      @confirm="handleDeleteConfirm"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import AddReserveModal from './AddReserveModal.vue'
+import EditReserveModal from './EditReserveModal.vue'
+import DeleteConfirmModal from './DeleteConfirmModal.vue'
+import { api, RESERVE_TYPES, formatDate } from '../services/graphql.js'
 
 // Reactive data
-const reserves = ref([
-  {
-    id: 1,
-    name: 'Emergency Fund',
-    type: 'Financial',
-    status: 'active',
-    createdAt: new Date('2024-01-15')
-  },
-  {
-    id: 2,
-    name: 'Equipment Reserve',
-    type: 'Physical',
-    status: 'pending',
-    createdAt: new Date('2024-01-20')
-  },
-  {
-    id: 3,
-    name: 'Personnel Backup',
-    type: 'Human',
-    status: 'active',
-    createdAt: new Date('2024-01-25')
-  }
-])
-
+const reserves = ref([])
 const showAddReserveModal = ref(false)
+const showEditReserveModal = ref(false)
+const showDeleteConfirmModal = ref(false)
+const selectedReserve = ref(null)
+const isLoading = ref(false)
+const error = ref(null)
 
 // Computed properties
 const totalReserves = computed(() => reserves.value.length)
-const activeReserves = computed(() => reserves.value.filter(r => r.status === 'active').length)
-const pendingReserves = computed(() => reserves.value.filter(r => r.status === 'pending').length)
-const monthlyReserves = computed(() => {
-  const currentMonth = new Date().getMonth()
-  const currentYear = new Date().getFullYear()
-  return reserves.value.filter(r => {
-    const reserveDate = new Date(r.createdAt)
-    return reserveDate.getMonth() === currentMonth && reserveDate.getFullYear() === currentYear
-  }).length
-})
+const bonusReserves = computed(() => reserves.value.filter(r => r.type === RESERVE_TYPES.BONUS).length)
+const resourceReserves = computed(() => reserves.value.filter(r => r.type === RESERVE_TYPES.RESOURCE).length)
+const mechReserves = computed(() => reserves.value.filter(r => r.type === RESERVE_TYPES.MECH).length)
+const tacticalReserves = computed(() => reserves.value.filter(r => r.type === RESERVE_TYPES.TACTICAL).length)
 
 // Methods
-const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
-
-const editReserve = (reserve) => {
-  console.log('Edit reserve:', reserve)
-  // TODO: Implement edit functionality
-}
-
-const deleteReserve = (id) => {
-  if (confirm('Are you sure you want to delete this reserve?')) {
-    reserves.value = reserves.value.filter(r => r.id !== id)
+const loadReserves = async () => {
+  isLoading.value = true
+  error.value = null
+  
+  try {
+    reserves.value = await api.fetchReserves()
+  } catch (err) {
+    error.value = `Failed to load reserves: ${err.message}`
+    console.error('Error loading reserves:', err)
+  } finally {
+    isLoading.value = false
   }
 }
 
-const handleAddReserve = (newReserve) => {
-  const id = Math.max(...reserves.value.map(r => r.id)) + 1
-  reserves.value.push({
-    id,
-    ...newReserve,
-    createdAt: new Date()
-  })
-  showAddReserveModal.value = false
+const editReserve = (reserve) => {
+  selectedReserve.value = reserve
+  showEditReserveModal.value = true
+}
+
+const deleteReserve = (id) => {
+  const reserve = reserves.value.find(r => r.id === id)
+  if (reserve) {
+    selectedReserve.value = reserve
+    showDeleteConfirmModal.value = true
+  }
+}
+
+const handleAddReserve = async (newReserve) => {
+  try {
+    await api.createReserve(newReserve)
+    await loadReserves() // Refresh the list
+    showAddReserveModal.value = false
+  } catch (err) {
+    error.value = `Failed to create reserve: ${err.message}`
+    console.error('Error creating reserve:', err)
+  }
+}
+
+const handleEditReserve = async (id, updatedData) => {
+  try {
+    await api.updateReserve(id, updatedData)
+    await loadReserves() // Refresh the list
+    showEditReserveModal.value = false
+    selectedReserve.value = null
+  } catch (err) {
+    error.value = `Failed to update reserve: ${err.message}`
+    console.error('Error updating reserve:', err)
+  }
+}
+
+const handleDeleteConfirm = async (id) => {
+  try {
+    await api.deleteReserve(id)
+    await loadReserves() // Refresh the list
+    showDeleteConfirmModal.value = false
+    selectedReserve.value = null
+  } catch (err) {
+    error.value = `Failed to delete reserve: ${err.message}`
+    console.error('Error deleting reserve:', err)
+  }
 }
 
 onMounted(() => {
-  console.log('ReservesDashboard mounted')
+  loadReserves()
 })
 </script>
 

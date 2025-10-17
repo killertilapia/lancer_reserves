@@ -11,5 +11,10 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true
+  },
+  define: {
+    // Ensure environment variables are available
+    __VUE_OPTIONS_API__: true,
+    __VUE_PROD_DEVTOOLS__: false
   }
 })
